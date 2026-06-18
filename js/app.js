@@ -350,7 +350,7 @@
 
     // ===== FREE AI IMAGE GENERATION (POLLINATIONS.AI) =====
     
-    // Pollinations URL builder
+    // Pollinations URL builder (Routes through backend serverless function)
     function buildPollinationsUrl(prompt) {
         const ratio = document.querySelector('input[name="aspect-ratio"]:checked')?.value || '16:9';
         let width = 1920;
@@ -360,7 +360,7 @@
         else if (ratio === '4:5') { width = 1080; height = 1350; }
         
         const seed = Math.floor(Math.random() * 1000000);
-        return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&nologo=true`;
+        return `/api/generate?prompt=${encodeURIComponent(prompt)}&width=${width}&height=${height}&seed=${seed}`;
     }
 
     // Helper to fetch image to data URL so it can be saved in JSON and Canvas without CORS issues
