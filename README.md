@@ -45,14 +45,6 @@ Because this project utilizes Serverless functions, running it strictly via `fil
    ```
 3. Open your browser to `http://localhost:3000`
 
-## ☁️ Deployment
-This repository is 100% ready for Vercel. 
-1. Log into Vercel.
-2. Click **Add New Project**.
-3. Import this GitHub repository.
-4. Click **Deploy**. Vercel will automatically serve the frontend and configure the `/api` directory as an Edge Function.
-
----
 
 ## 👨‍💻 About the Founder
 
