@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SceneForge AI — Faceless Video Generator</title>
+    <meta name="description" content="Transform your scripts into professional faceless YouTube videos with AI-generated visuals, voiceover sync, and auto-subtitles.">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <header id="app-header">
+        <div class="header-left">
+            <div class="logo">
+                <span class="logo-icon material-icons-round">movie_creation</span>
+                <span class="logo-text">Scene<span class="logo-accent">Forge</span> AI</span>
+            </div>
+        </div>
+        <div class="header-center">
+            <div class="step-wizard" id="step-wizard">
+                <div class="step active" data-step="1">
+                    <div class="step-circle">1</div>
+                    <span class="step-label">Script</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step" data-step="2">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">Audio</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step" data-step="3">
+                    <div class="step-circle">3</div>
+                    <span class="step-label">Scenes</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step" data-step="4">
+                    <div class="step-circle">4</div>
+                    <span class="step-label">Export</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-ghost" id="btn-save-project" title="Save Project">
+                <span class="material-icons-round">save</span>
+            </button>
+            <button class="btn btn-ghost" id="btn-load-project" title="Load Project">
+                <span class="material-icons-round">folder_open</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="app-main">
+
+        <!-- ==================== STEP 1: SCRIPT INPUT ==================== -->
+        <section class="step-panel active" id="panel-step-1">
+            <div class="step-content-wrapper">
+                <div class="step-intro">
+                    <h1>Paste Your Script</h1>
+                    <p>Enter your video script below. Use blank lines to separate scenes, or click <strong>"Auto-Split"</strong> to let AI detect natural scene breaks.</p>
+                </div>
+
+                <div class="script-input-area">
+                    <div class="script-toolbar">
+                        <div class="toolbar-left">
+                            <span class="material-icons-round">description</span>
+                            <span class="toolbar-title">Script Editor</span>
+                        </div>
+                        <div class="toolbar-right">
+                            <button class="btn btn-sm btn-outline" id="btn-clear-script">
+                                <span class="material-icons-round">clear_all</span> Clear
+                            </button>
+                            <button class="btn btn-sm btn-outline" id="btn-paste-script">
+                                <span class="material-icons-round">content_paste</span> Paste
+                            </button>
+                        </div>
+                    </div>
+                    <textarea id="script-textarea" placeholder="Paste your full video script here...
+
+Separate scenes with blank lines, or use markers like:
+
+[Scene 1]
+Welcome to Wealth Decoded...
+
+[Scene 2]
+Today we're going to talk about..."></textarea>
+                </div>
+
+                <div class="script-stats" id="script-stats">
+                    <div class="stat-chip">
+                        <span class="material-icons-round">text_fields</span>
+                        <span id="stat-words">0 words</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span class="material-icons-round">timer</span>
+                        <span id="stat-duration">~0 min</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span class="material-icons-round">view_carousel</span>
+                        <span id="stat-scenes">0 scenes</span>
+                    </div>
+                </div>
+
+                <div class="step-actions">
+                    <button class="btn btn-primary btn-lg" id="btn-auto-split">
+                        <span class="material-icons-round">auto_fix_high</span> Auto-Split into Scenes
+                    </button>
+                    <button class="btn btn-accent btn-lg" id="btn-to-step2" disabled>
+                        Continue to Audio <span class="material-icons-round">arrow_forward</span>
+                    </button>
+                </div>
+
+                <!-- Scene Preview List (shows after split) -->
+                <div class="scenes-preview" id="scenes-preview" style="display: none;">
+                    <div class="scenes-preview-header">
+                        <h3><span class="material-icons-round">view_list</span> Detected Scenes</h3>
+                        <button class="btn btn-sm btn-outline" id="btn-add-scene">
+                            <span class="material-icons-round">add</span> Add Scene
+                        </button>
+                    </div>
+                    <div class="scenes-list" id="scenes-list">
+                        <!-- Scene items rendered here by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 2: AUDIO UPLOAD ==================== -->
+        <section class="step-panel" id="panel-step-2">
+            <div class="step-content-wrapper">
+                <div class="step-intro">
+                    <h1>Upload Your Voiceover</h1>
+                    <p>Drop your pre-recorded voiceover audio file. Supported formats: <strong>MP3, WAV, M4A, OGG, WEBM</strong>.</p>
+                </div>
+
+                <div class="audio-upload-zone" id="audio-drop-zone">
+                    <div class="upload-icon">
+                        <span class="material-icons-round">mic</span>
+                    </div>
+                    <h3>Drag & Drop Audio File</h3>
+                    <p>or click to browse</p>
+                    <input type="file" id="audio-file-input" accept="audio/*" hidden>
+                </div>
+
+                <!-- Audio Waveform (shown after upload) -->
+                <div class="audio-player-container" id="audio-player-container" style="display: none;">
+                    <div class="audio-info-bar">
+                        <div class="audio-file-info">
+                            <span class="material-icons-round">audio_file</span>
+                            <span id="audio-filename">filename.mp3</span>
+                            <span class="audio-badge" id="audio-duration-badge">0:00</span>
+                        </div>
+                        <button class="btn btn-sm btn-outline btn-danger" id="btn-remove-audio">
+                            <span class="material-icons-round">delete</span> Remove
+                        </button>
+                    </div>
+                    <div class="waveform-container">
+                        <canvas id="waveform-canvas" height="120"></canvas>
+                    </div>
+                    <div class="audio-controls">
+                        <button class="btn btn-icon" id="btn-audio-play">
+                            <span class="material-icons-round">play_arrow</span>
+                        </button>
+                        <span class="audio-time" id="audio-current-time">0:00</span>
+                        <div class="audio-scrubber">
+                            <input type="range" id="audio-scrubber-input" min="0" max="100" value="0" step="0.1">
+                        </div>
+                        <span class="audio-time" id="audio-total-time">0:00</span>
+                    </div>
+                </div>
+
+                <div class="step-actions">
+                    <button class="btn btn-outline btn-lg" id="btn-back-to-step1">
+                        <span class="material-icons-round">arrow_back</span> Back
+                    </button>
+                    <button class="btn btn-accent btn-lg" id="btn-to-step3" disabled>
+                        Continue to Scenes <span class="material-icons-round">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 3: SCENE EDITOR ==================== -->
+        <section class="step-panel" id="panel-step-3">
+            <div class="scene-editor-layout">
+                <!-- Left: Scene List / Timeline -->
+                <div class="scene-sidebar">
+                    <div class="scene-sidebar-header">
+                        <h3>Scenes</h3>
+                        <div class="scene-sidebar-actions">
+                            <button class="btn btn-sm btn-outline" id="btn-bulk-upload" title="Bulk upload images">
+                                <span class="material-icons-round">photo_library</span>
+                            </button>
+                            <input type="file" id="bulk-image-input" accept="image/*" multiple hidden>
+                            <button class="btn btn-sm btn-outline" id="btn-generate-all-images" title="Generate all images with AI">
+                                <span class="material-icons-round">auto_awesome</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="scene-timeline-list" id="scene-timeline-list">
+                        <!-- Scene timeline items rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Center: Preview Area -->
+                <div class="scene-preview-area">
+                    <div class="preview-canvas-wrapper">
+                        <canvas id="preview-canvas" width="1920" height="1080"></canvas>
+                        <div class="preview-empty-state" id="preview-empty-state">
+                            <span class="material-icons-round">image</span>
+                            <p>Select a scene to preview</p>
+                        </div>
+                    </div>
+                    <div class="preview-controls">
+                        <button class="btn btn-icon" id="btn-preview-play" title="Preview all scenes">
+                            <span class="material-icons-round">play_circle</span>
+                        </button>
+                        <button class="btn btn-icon" id="btn-preview-stop" title="Stop preview">
+                            <span class="material-icons-round">stop_circle</span>
+                        </button>
+                        <div class="preview-info" id="preview-info">
+                            <span>Scene <span id="preview-scene-num">-</span> of <span id="preview-total-scenes">-</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Scene Properties -->
+                <div class="scene-properties" id="scene-properties">
+                    <div class="properties-header">
+                        <h3>Scene Properties</h3>
+                    </div>
+                    <div class="properties-empty" id="properties-empty">
+                        <span class="material-icons-round">touch_app</span>
+                        <p>Select a scene from the timeline</p>
+                    </div>
+                    <div class="properties-content" id="properties-content" style="display: none;">
+                        <!-- Image Section -->
+                        <div class="prop-group">
+                            <label class="prop-label">Image</label>
+                            <div class="image-drop-zone" id="scene-image-drop">
+                                <span class="material-icons-round">add_photo_alternate</span>
+                                <span>Drop image or click</span>
+                                <input type="file" id="scene-image-input" accept="image/*" hidden>
+                            </div>
+                            <button class="btn btn-sm btn-primary btn-full" id="btn-generate-scene-image">
+                                <span class="material-icons-round">auto_awesome</span> Generate with AI
+                            </button>
+                        </div>
+
+                        <!-- AI Prompt -->
+                        <div class="prop-group">
+                            <label class="prop-label">Image Prompt</label>
+                            <textarea class="prop-textarea" id="prop-image-prompt" rows="3" placeholder="AI image generation prompt..."></textarea>
+                        </div>
+
+                        <!-- Duration -->
+                        <div class="prop-group">
+                            <label class="prop-label">Duration (seconds)</label>
+                            <input class="prop-input" type="number" id="prop-duration" min="1" max="300" value="5">
+                        </div>
+
+                        <!-- Transition -->
+                        <div class="prop-group">
+                            <label class="prop-label">Transition</label>
+                            <select class="prop-select" id="prop-transition">
+                                <option value="crossfade">Crossfade</option>
+                                <option value="fade-black">Fade to Black</option>
+                                <option value="slide-left">Slide Left</option>
+                                <option value="slide-right">Slide Right</option>
+                                <option value="zoom">Zoom</option>
+                                <option value="none">None</option>
+                            </select>
+                        </div>
+
+                        <!-- Ken Burns -->
+                        <div class="prop-group">
+                            <label class="prop-label">Ken Burns Effect</label>
+                            <select class="prop-select" id="prop-kenburns">
+                                <option value="zoom-in">Zoom In (Slow)</option>
+                                <option value="zoom-out">Zoom Out (Slow)</option>
+                                <option value="pan-left">Pan Left</option>
+                                <option value="pan-right">Pan Right</option>
+                                <option value="pan-up">Pan Up</option>
+                                <option value="pan-down">Pan Down</option>
+                                <option value="none">None</option>
+                            </select>
+                        </div>
+
+                        <!-- Subtitle Text -->
+                        <div class="prop-group">
+                            <label class="prop-label">Subtitle Text</label>
+                            <textarea class="prop-textarea" id="prop-subtitle" rows="2" placeholder="Text to display on screen..."></textarea>
+                        </div>
+
+                        <button class="btn btn-sm btn-outline btn-danger btn-full" id="btn-delete-scene">
+                            <span class="material-icons-round">delete</span> Delete Scene
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step-actions step-actions-fixed">
+                <button class="btn btn-outline btn-lg" id="btn-back-to-step2">
+                    <span class="material-icons-round">arrow_back</span> Back
+                </button>
+                <button class="btn btn-accent btn-lg" id="btn-to-step4">
+                    Continue to Export <span class="material-icons-round">arrow_forward</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 4: RENDER & EXPORT ==================== -->
+        <section class="step-panel" id="panel-step-4">
+            <div class="step-content-wrapper">
+                <div class="step-intro">
+                    <h1>Render & Export</h1>
+                    <p>Configure your output settings and render the final video.</p>
+                </div>
+
+                <div class="export-settings">
+                    <!-- Aspect Ratio -->
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <span class="material-icons-round">aspect_ratio</span>
+                            <h3>Aspect Ratio</h3>
+                        </div>
+                        <div class="ratio-options" id="ratio-options">
+                            <label class="ratio-option active">
+                                <input type="radio" name="aspect-ratio" value="16:9" checked>
+                                <div class="ratio-preview landscape"></div>
+                                <span class="ratio-label">16:9</span>
+                                <span class="ratio-desc">YouTube / Landscape</span>
+                            </label>
+                            <label class="ratio-option">
+                                <input type="radio" name="aspect-ratio" value="9:16">
+                                <div class="ratio-preview portrait"></div>
+                                <span class="ratio-label">9:16</span>
+                                <span class="ratio-desc">Shorts / Reels</span>
+                            </label>
+                            <label class="ratio-option">
+                                <input type="radio" name="aspect-ratio" value="1:1">
+                                <div class="ratio-preview square"></div>
+                                <span class="ratio-label">1:1</span>
+                                <span class="ratio-desc">Square / Instagram</span>
+                            </label>
+                            <label class="ratio-option">
+                                <input type="radio" name="aspect-ratio" value="4:5">
+                                <div class="ratio-preview four-five"></div>
+                                <span class="ratio-label">4:5</span>
+                                <span class="ratio-desc">Instagram Feed</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Resolution -->
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <span class="material-icons-round">high_quality</span>
+                            <h3>Resolution</h3>
+                        </div>
+                        <div class="resolution-options" id="resolution-options">
+                            <label class="resolution-option">
+                                <input type="radio" name="resolution" value="720">
+                                <div class="res-info">
+                                    <span class="res-name">HD</span>
+                                    <span class="res-detail">720p</span>
+                                </div>
+                                <span class="res-badge">Fast</span>
+                            </label>
+                            <label class="resolution-option active">
+                                <input type="radio" name="resolution" value="1080" checked>
+                                <div class="res-info">
+                                    <span class="res-name">Full HD</span>
+                                    <span class="res-detail">1080p</span>
+                                </div>
+                                <span class="res-badge recommended">Recommended</span>
+                            </label>
+                            <label class="resolution-option">
+                                <input type="radio" name="resolution" value="2160">
+                                <div class="res-info">
+                                    <span class="res-name">4K UHD</span>
+                                    <span class="res-detail">2160p</span>
+                                </div>
+                                <span class="res-badge">Slow</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Subtitles -->
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <span class="material-icons-round">subtitles</span>
+                            <h3>Subtitles</h3>
+                        </div>
+                        <div class="subtitle-settings">
+                            <label class="toggle-row">
+                                <span>Burn subtitles into video</span>
+                                <input type="checkbox" id="toggle-subtitles" checked>
+                                <span class="toggle-switch"></span>
+                            </label>
+                            <div class="subtitle-style-options" id="subtitle-style-options">
+                                <div class="prop-group">
+                                    <label class="prop-label">Font Size</label>
+                                    <select class="prop-select" id="subtitle-font-size">
+                                        <option value="small">Small</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="large">Large</option>
+                                    </select>
+                                </div>
+                                <div class="prop-group">
+                                    <label class="prop-label">Position</label>
+                                    <select class="prop-select" id="subtitle-position">
+                                        <option value="bottom" selected>Bottom</option>
+                                        <option value="center">Center</option>
+                                        <option value="top">Top</option>
+                                    </select>
+                                </div>
+                                <div class="prop-group">
+                                    <label class="prop-label">Style</label>
+                                    <select class="prop-select" id="subtitle-style">
+                                        <option value="box" selected>Box Background</option>
+                                        <option value="outline">Text Outline</option>
+                                        <option value="shadow">Drop Shadow</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="export-summary" id="export-summary">
+                    <div class="summary-item">
+                        <span class="material-icons-round">view_carousel</span>
+                        <span><strong id="summary-scenes">0</strong> Scenes</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="material-icons-round">timer</span>
+                        <span><strong id="summary-duration">0:00</strong> Total Duration</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="material-icons-round">aspect_ratio</span>
+                        <span id="summary-format">1920×1080 (16:9)</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="material-icons-round">image</span>
+                        <span><strong id="summary-images">0</strong> / <strong id="summary-images-total">0</strong> images assigned</span>
+                    </div>
+                </div>
+
+                <!-- Render Button & Progress -->
+                <div class="render-section">
+                    <button class="btn btn-primary btn-xl" id="btn-render">
+                        <span class="material-icons-round">videocam</span> Render Video
+                    </button>
+
+                    <div class="render-progress" id="render-progress" style="display: none;">
+                        <div class="render-progress-header">
+                            <span class="material-icons-round spin">settings</span>
+                            <span id="render-status-text">Initializing FFmpeg...</span>
+                        </div>
+                        <div class="render-progress-bar">
+                            <div class="render-progress-fill" id="render-progress-fill" style="width: 0%;"></div>
+                        </div>
+                        <div class="render-progress-details">
+                            <span id="render-progress-percent">0%</span>
+                            <span id="render-eta">ETA: calculating...</span>
+                        </div>
+                    </div>
+
+                    <div class="render-complete" id="render-complete" style="display: none;">
+                        <div class="render-complete-icon">
+                            <span class="material-icons-round">check_circle</span>
+                        </div>
+                        <h3>Video Ready!</h3>
+                        <button class="btn btn-accent btn-lg" id="btn-download-video">
+                            <span class="material-icons-round">download</span> Download MP4
+                        </button>
+                    </div>
+                </div>
+
+                <div class="step-actions">
+                    <button class="btn btn-outline btn-lg" id="btn-back-to-step3">
+                        <span class="material-icons-round">arrow_back</span> Back
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Image Generation Modal -->
+    <div class="modal-overlay" id="modal-generate" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><span class="material-icons-round">auto_awesome</span> Generate Image (Free AI)</h3>
+                <button class="btn btn-icon modal-close" id="modal-generate-close">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="prop-group">
+                    <label class="prop-label">Image Prompt</label>
+                    <textarea class="prop-textarea" id="modal-gen-prompt" rows="3" placeholder="Describe the image you want to generate..."></textarea>
+                </div>
+                <div class="modal-gen-preview" id="modal-gen-preview" style="display: none;">
+                    <img id="modal-gen-img" src="" alt="Generated image preview">
+                    <div class="modal-gen-loading" id="modal-gen-loading" style="display: none;">
+                        <span class="material-icons-round spin">settings</span>
+                        <span>Generating... (approx 10s)</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-primary" id="btn-do-generate" style="flex: 1;">
+                        <span class="material-icons-round">auto_awesome</span> Generate
+                    </button>
+                    <button class="btn btn-accent" id="btn-apply-generated" style="display: none; flex: 1;">
+                        <span class="material-icons-round">check</span> Apply to Scene
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Generation Modal -->
+    <div class="modal-overlay" id="modal-bulk-generate" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><span class="material-icons-round">auto_awesome_motion</span> Generate All Images</h3>
+                <button class="btn btn-icon modal-close" id="modal-bulk-generate-close">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="bulk-gen-status">Ready to generate images for <strong id="bulk-gen-count">0</strong> scenes using free AI.</p>
+                
+                <div class="render-progress" id="bulk-gen-progress" style="display: none; width: 100%;">
+                    <div class="render-progress-bar">
+                        <div class="render-progress-fill" id="bulk-gen-progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="render-progress-details" style="margin-top: 0.5rem; display: flex; justify-content: space-between;">
+                        <span id="bulk-gen-progress-text">0 / 0</span>
+                        <span id="bulk-gen-progress-percent">0%</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-full" id="btn-start-bulk-generate">
+                    <span class="material-icons-round">play_arrow</span> Start Bulk Generation
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/script-parser.js"></script>
+    <script src="js/audio-manager.js"></script>
+    <script src="js/scene-editor.js"></script>
+    <script src="js/video-renderer.js"></script>
+    <script src="js/preview-player.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
